@@ -770,33 +770,41 @@ extension LaunchController {
                  decidePolicyFor navigationAction: WKNavigationAction, 
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         
-        // 只攔截用戶點擊的連結（linkActivated），不影響 iframe 的初始載入（.other）
-        if navigationAction.navigationType == .linkActivated {
-            if navigationAction.targetFrame == nil || navigationAction.targetFrame?.isMainFrame == false {
-                // iframe 內的連結點擊，在系統瀏覽器中打開
-                if let url = navigationAction.request.url {
-
-                    NSWorkspace.shared.open(url)
-                    decisionHandler(.cancel)
-                    return
-                }
-            }
+        guard webView === loginPageWebView else {
+            decisionHandler(.cancel)
+            return
         }
-        
-        // 其他導航正常處理（包括 iframe 的初始載入）
-        decisionHandler(.allow)
+
+        if navigationAction.targetFrame?.isMainFrame == true,
+           loginPageManager?.allowInitialNavigation(navigationAction) == true {
+            decisionHandler(.allow)
+            return
+        }
+
+        guard !navigationAction.shouldPerformDownload else {
+            decisionHandler(.cancel)
+            return
+        }
+
+        if navigationAction.navigationType == .linkActivated {
+            if let url = navigationAction.request.url,
+               url.scheme == "https", let host = url.host, !host.isEmpty,
+               url.user == nil, url.password == nil,
+               url.port == nil || url.port == 443 {
+                NSWorkspace.shared.open(url)
+            }
+            decisionHandler(.cancel)
+            return
+        }
+
+        // 保留 reCAPTCHA 子框架；主框架替換與自動開新視窗一律拒絕。
+        decisionHandler(navigationAction.targetFrame?.isMainFrame == false ? .allow : .cancel)
     }
     
     func webView(_ webView: WKWebView, 
                  createWebViewWith configuration: WKWebViewConfiguration, 
                  for navigationAction: WKNavigationAction, 
                  windowFeatures: WKWindowFeatures) -> WKWebView? {
-        
-        // 處理 target="_blank" 連結，在系統瀏覽器中打開
-        if let url = navigationAction.request.url {
-
-            NSWorkspace.shared.open(url)
-        }
         
         return nil
     }

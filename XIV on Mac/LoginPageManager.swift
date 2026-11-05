@@ -36,6 +36,7 @@ class LoginPageManager: NSObject {
     private var loginNavigation: WKNavigation?
     private var loginPageSession: String?
     private var bridgeEnabled = false
+    private var initialNavigationAllowed = false
     private var announcementsTask: Task<Void, Never>?
     
     // MARK: - Initialization
@@ -61,11 +62,22 @@ class LoginPageManager: NSObject {
         // 文件識別只注入本機 HTML，避免延遲回傳落入導航後的其他頁面。
         let page = html.replacingOccurrences(of: "<head>", with:
             "<head><script>Object.defineProperty(window, '__xivLoginSession', { value: '\(session)' });</script>")
+        initialNavigationAllowed = true
         loginNavigation = webView?.loadHTMLString(page, baseURL: Self.loginPageURL)
+        if loginNavigation == nil { didFailNavigation() }
+    }
+
+    func allowInitialNavigation(_ action: WKNavigationAction) -> Bool {
+        // 每次本機載入只放行一次，不能因網址相同而放行後續遠端文件。
+        defer { initialNavigationAllowed = false }
+        return initialNavigationAllowed && action.targetFrame?.isMainFrame == true
+            && action.navigationType == .other && action.request.url == Self.loginPageURL
+            && !action.shouldPerformDownload
     }
 
     func invalidateBridge() {
         bridgeEnabled = false
+        initialNavigationAllowed = false
         currentAccount = nil
         announcementsTask?.cancel()
         announcementsTask = nil
