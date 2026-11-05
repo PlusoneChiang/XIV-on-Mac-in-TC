@@ -7,6 +7,18 @@
         <language>zh-TW</language>
         <!-- 最新版本 -->
         <item>
+            <title>XIV on Mac v1.4.0</title>
+            <pubDate>Thu, 05 Nov 2026 11:10:34 GMT</pubDate>
+            <sparkle:version>22</sparkle:version>
+            <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
+            <description>&lt;pre&gt;- 強化登入頁安全性，嚴格限制登入頁與程式的通訊與頁面跳轉。
+- 修正帳號等資料傳回登入頁時的 JS 字串注入風險。
+- 官方公告改為本機呈現，不再載入公告頁的外部 JS。
+&lt;/pre&gt;</description>
+            <enclosure url="https://github.com/PlusoneChiang/XIV-on-Mac-in-TC/releases/download/v1.4.0/XIV-on-Mac-in-TC-1.4.0.dmg" type="application/octet-stream" length="191523340" sparkle:edSignature="e50/CP6/l0pOZsXa9RJhFsfxvhpVkiwyQ9h2z9B1Vz+uLDvCde9CzCw7qR1/5Dnzwq4k0k0b5n5bWTphjArNCA==" />
+        </item>
+        <item>
             <title>XIV on Mac v1.3.0</title>
             <pubDate>Wed, 21 Oct 2026 06:43:20 GMT</pubDate>
             <sparkle:version>20</sparkle:version>
