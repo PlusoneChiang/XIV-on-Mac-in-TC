@@ -88,17 +88,12 @@ class LoginPageManager: NSObject {
     
     /// 發送已儲存的帳號列表到 JS
     func sendAccounts(_ accounts: [String]) {
-        let accountsJSON = accounts.map { "\"\($0)\"" }.joined(separator: ",")
-        let script = "window.loginForm.receiveAccounts([\(accountsJSON)]);"
-        executeJavaScript(script)
+        executeJavaScript("window.loginForm.receiveAccounts(accounts);", arguments: ["accounts": accounts])
     }
     
     /// 發送密碼到 JS
     func sendPassword(_ password: String) {
-        let escapedPassword = password.replacingOccurrences(of: "\\", with: "\\\\")
-                                      .replacingOccurrences(of: "\"", with: "\\\"")
-        let script = "window.loginForm.receivePassword(\"\(escapedPassword)\");"
-        executeJavaScript(script)
+        executeJavaScript("window.loginForm.receivePassword(password);", arguments: ["password": password])
     }
     
     /// 通知 JS 該帳號有已儲存的 OTP 金鑰
@@ -115,8 +110,8 @@ class LoginPageManager: NSObject {
     
     /// 發送生成的 OTP 和剩餘秒數到 JS
     func sendOTP(_ otp: String, remainingSeconds: Int) {
-        let script = "window.loginForm.receiveOTP('\(otp)', \(remainingSeconds));"
-        executeJavaScript(script)
+        executeJavaScript("window.loginForm.receiveOTP(otp, remainingSeconds);",
+                          arguments: ["otp": otp, "remainingSeconds": remainingSeconds])
     }
     
     /// 重置登入按鈕狀態
@@ -133,9 +128,9 @@ class LoginPageManager: NSObject {
     
     // MARK: - Helper
     
-    private func executeJavaScript(_ script: String) {
-        webView?.evaluateJavaScript(script) { result, error in
-            if let error = error {
+    private func executeJavaScript(_ script: String, arguments: [String: Any] = [:]) {
+        webView?.callAsyncJavaScript(script, arguments: arguments, in: nil, in: .page) { result in
+            if case .failure(let error) = result {
                 Log.error("[LoginPageManager] JavaScript error: \(error.localizedDescription)")
             }
         }
@@ -288,14 +283,12 @@ extension LoginPageManager {
     
     /// 通知 JS 遊戲已結束（恢復 OTP、enable 登入按鈕）
     func notifyGameExited(exitCode: Int32) {
-        let script = "window.loginForm.onGameExited(\(exitCode));"
-        executeJavaScript(script)
+        executeJavaScript("window.loginForm.onGameExited(exitCode);", arguments: ["exitCode": exitCode])
         Log.information("[LoginPageManager] Notified JS: game exited with code \(exitCode)")
     }
     
     /// 發送自動 OTP 設定狀態到 JS
     func sendAutoOtpSetting(_ enabled: Bool) {
-        let script = "window.loginForm.receiveAutoOtpSetting(\(enabled));"
-        executeJavaScript(script)
+        executeJavaScript("window.loginForm.receiveAutoOtpSetting(enabled);", arguments: ["enabled": enabled])
     }
 }
