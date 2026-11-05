@@ -107,45 +107,195 @@ class LoginForm {
     }
   }
 
-  receiveAnnouncements(items) {
-    if (!this.announcements || !Array.isArray(items)) {
+  receiveAnnouncements(news) {
+    if (!this.announcements || !news || !Array.isArray(news.items)) {
+      return this.onAnnouncementsError();
+    }
+
+    const items = news.items.filter(item => item
+      && typeof item.title === 'string'
+      && typeof item.url === 'string'
+      && this.isAnnouncementURL(item.url));
+    if (items.length === 0) {
       return this.onAnnouncementsError();
     }
 
     const fragment = document.createDocumentFragment();
-    const heading = document.createElement('h2');
-    heading.className = 'announcements-heading';
-    heading.textContent = '官方公告';
-    fragment.appendChild(heading);
+    const banners = (Array.isArray(news.banners) ? news.banners : []).filter(banner => banner
+      && typeof banner.imageUrl === 'string'
+      && typeof banner.url === 'string'
+      && this.isAnnouncementURL(banner.imageUrl)
+      && this.isAnnouncementURL(banner.url));
+    if (banners.length) {
+      fragment.appendChild(this.createAnnouncementBanner(banners));
+    }
 
+    const categories = ['最新', '活動', '更新', '維護', '其他'];
+    const groups = new Map(categories.map(category => [category, category === '最新'
+      ? items.slice(0, 10)
+      : items.filter(item => item.category === category)]));
+    const tabs = document.createElement('div');
+    tabs.className = 'announcement-tabs';
     const list = document.createElement('div');
-    list.className = 'announcements-list';
-    for (const item of items) {
-      if (!item || typeof item.title !== 'string' || typeof item.url !== 'string' || !this.isAnnouncementURL(item.url)) {
-        continue;
+    list.className = 'announcement-list';
+    const renderItems = category => {
+      list.replaceChildren();
+      for (const item of groups.get(category)) {
+        list.appendChild(this.createAnnouncementItem(item));
       }
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'announcement-item';
-      button.addEventListener('click', () => {
-        window.webkit?.messageHandlers.openAnnouncement?.postMessage(item.url);
+      if (list.childElementCount === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'announcements-status';
+        empty.textContent = '目前沒有可顯示的公告。';
+        list.appendChild(empty);
+      }
+      tabs.querySelectorAll('button').forEach(tab => {
+        const selected = tab.dataset.category === category;
+        tab.classList.toggle('active', selected);
+        tab.setAttribute('aria-pressed', String(selected));
       });
-
-      const meta = document.createElement('span');
-      meta.className = 'announcement-meta';
-      meta.textContent = [item.date, item.category].filter(value => typeof value === 'string' && value.length > 0).join('　');
-      const title = document.createElement('span');
-      title.className = 'announcement-title';
-      title.textContent = item.title;
-      button.append(meta, title);
-      list.appendChild(button);
+    };
+    for (const category of categories) {
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.textContent = category;
+      tab.dataset.category = category;
+      tab.setAttribute('aria-pressed', 'false');
+      tab.addEventListener('click', () => renderItems(category));
+      tabs.appendChild(tab);
     }
+    renderItems('最新');
+    fragment.append(tabs, list);
 
-    if (list.childElementCount === 0) {
-      return this.onAnnouncementsError();
+    if (typeof news.moreUrl === 'string' && this.isAnnouncementURL(news.moreUrl)) {
+      const footer = document.createElement('div');
+      footer.className = 'announcement-footer';
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'announcement-more';
+      more.textContent = '更多公告 ›';
+      more.addEventListener('click', () => this.openAnnouncement(news.moreUrl));
+      footer.appendChild(more);
+      fragment.appendChild(footer);
     }
-    fragment.appendChild(list);
     this.announcements.replaceChildren(fragment);
+  }
+
+  createAnnouncementBanner(banners) {
+    let index = 0;
+    let image;
+    let dots;
+    let transitioning = false;
+    const banner = document.createElement('div');
+    banner.className = 'announcement-banner';
+    const link = document.createElement('button');
+    link.type = 'button';
+    link.className = 'announcement-banner-link';
+    link.setAttribute('aria-label', '查看活動公告');
+    link.addEventListener('click', () => this.openAnnouncement(banners[index].url));
+    const showBanner = async nextIndex => {
+      const targetIndex = (nextIndex + banners.length) % banners.length;
+      if (transitioning || (image?.hasAttribute('src') && targetIndex === index)) return;
+      transitioning = true;
+      const incoming = document.createElement('img');
+      incoming.alt = '';
+      incoming.src = banners[targetIndex].imageUrl;
+      try {
+        await incoming.decode();
+      } catch {
+        transitioning = false;
+        return;
+      }
+      const outgoing = image;
+      const direction = nextIndex < index ? -1 : 1;
+      index = targetIndex;
+      link.appendChild(incoming);
+      image = incoming;
+      dots?.querySelectorAll('button').forEach((dot, dotIndex) => {
+        dot.classList.toggle('active', dotIndex === index);
+        dot.setAttribute('aria-pressed', String(dotIndex === index));
+      });
+      if (outgoing && typeof incoming.animate === 'function' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const options = { duration: 400, easing: 'ease-in-out', fill: 'forwards' };
+        const animations = [
+          outgoing.animate([{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: 'translateX(' + (-24 * direction) + 'px)' }], options),
+          incoming.animate([{ opacity: 0, transform: 'translateX(' + (24 * direction) + 'px)' }, { opacity: 1, transform: 'translateX(0)' }], options)
+        ];
+        await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
+        animations.forEach(animation => animation.cancel());
+      }
+      outgoing?.remove();
+      transitioning = false;
+    };
+    banner.appendChild(link);
+    if (banners.length > 1) {
+      const previous = document.createElement('button');
+      previous.type = 'button';
+      previous.className = 'announcement-previous';
+      previous.textContent = '‹';
+      previous.setAttribute('aria-label', '上一則橫幅');
+      previous.addEventListener('click', () => showBanner(index - 1));
+      const next = document.createElement('button');
+      next.type = 'button';
+      next.className = 'announcement-next';
+      next.textContent = '›';
+      next.setAttribute('aria-label', '下一則橫幅');
+      next.addEventListener('click', () => showBanner(index + 1));
+      dots = document.createElement('div');
+      dots.className = 'announcement-dots';
+      banners.forEach((_, dotIndex) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = dotIndex === 0 ? 'active' : '';
+        dot.setAttribute('aria-label', '第 ' + (dotIndex + 1) + ' 則橫幅');
+        dot.setAttribute('aria-pressed', String(dotIndex === 0));
+        dot.addEventListener('click', () => showBanner(dotIndex));
+        dots.appendChild(dot);
+      });
+      banner.append(previous, next, dots);
+    }
+    showBanner(0);
+    if (banners.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const timer = setInterval(() => {
+        if (!banner.isConnected) clearInterval(timer);
+        else if (!document.hidden && !banner.matches(':hover, :focus-within')) showBanner(index + 1);
+      }, 5000);
+    }
+    return banner;
+  }
+
+  createAnnouncementItem(item) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'announcement-item';
+    button.addEventListener('click', () => this.openAnnouncement(item.url));
+    const date = document.createElement('span');
+    date.className = 'announcement-date';
+    date.textContent = typeof item.date === 'string' ? item.date : '';
+    const category = document.createElement('span');
+    category.className = 'announcement-category';
+    category.textContent = typeof item.category === 'string' ? item.category : '';
+    const title = document.createElement('span');
+    title.className = 'announcement-title';
+    title.title = item.title;
+    if (item.isPinned === true || item.isPinned === 'true') {
+      const pinned = document.createElement('span');
+      pinned.className = 'announcement-pinned';
+      pinned.textContent = '置頂';
+      title.appendChild(pinned);
+    }
+    const text = document.createElement('span');
+    text.className = 'announcement-title-text';
+    text.textContent = item.title;
+    title.appendChild(text);
+    button.append(date, category, title);
+    return button;
+  }
+
+  openAnnouncement(url) {
+    if (this.isAnnouncementURL(url)) {
+      window.webkit?.messageHandlers.openAnnouncement?.postMessage(url);
+    }
   }
 
   onAnnouncementsError() {

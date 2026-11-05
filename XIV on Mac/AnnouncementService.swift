@@ -14,9 +14,13 @@ enum AnnouncementService {
     private static let dateExpression = try! NSRegularExpression(pattern: #"<div class="publish_date">\s*([^<]{1,64})"#)
     private static let typeExpression = try! NSRegularExpression(pattern: #"<div class="type\s+(event|update|maintain|other)\b"#)
     private static let linkExpression = try! NSRegularExpression(pattern: #"<a\s+[^<>]*href\s*=\s*"([^"<>]{1,2048})"[^<>]*>([^<]{1,2048})</a>"#)
+    private static let bannerExpression = try! NSRegularExpression(
+        pattern: #"<div\s+class="swiper-slide">\s*<a\s+href="([^"<>]{1,2048})"[^<>]*>\s*<img\s+src\s*=\s*"([^"<>]{1,2048})""#,
+        options: .caseInsensitive)
+    private static let pinnedExpression = try! NSRegularExpression(pattern: #"<span\s+class="badge top">"#)
     private static let entityExpression = try! NSRegularExpression(pattern: #"&(#x[0-9a-fA-F]{1,8}|#[0-9]{1,10}|amp|lt|gt|quot|apos|nbsp);"#)
 
-    static func fetch() async throws -> [[String: String]] {
+    static func fetch() async throws -> [String: Any] {
         var request = URLRequest(url: sourceURL)
         request.timeoutInterval = 15
         request.cachePolicy = .reloadIgnoringLocalCacheData
@@ -59,7 +63,7 @@ enum AnnouncementService {
         return true
     }
 
-    static func parse(_ html: String) throws -> [[String: String]] {
+    static func parse(_ html: String) throws -> [String: Any] {
         guard html.utf8.count <= maximumResponseSize else {
             throw URLError(.dataLengthExceedsMaximum)
         }
@@ -93,12 +97,24 @@ enum AnnouncementService {
                 "date": decodeEntities(date).trimmingCharacters(in: .whitespacesAndNewlines),
                 "category": category(for: type),
                 "title": decodedTitle,
-                "url": url.absoluteString
+                "url": url.absoluteString,
+                "isPinned": pinnedExpression.firstMatch(in: item, range: NSRange(item.startIndex..., in: item)) != nil ? "true" : "false"
             ])
         }
 
         guard !items.isEmpty else { throw URLError(.cannotParseResponse) }
-        return items
+        var banners: [[String: String]] = []
+        bannerExpression.enumerateMatches(in: html, range: NSRange(html.startIndex..., in: html)) { match, _, stop in
+            guard let match = match,
+                  let linkRange = Range(match.range(at: 1), in: html),
+                  let imageRange = Range(match.range(at: 2), in: html),
+                  let url = URL(string: decodeEntities(String(html[linkRange]))),
+                  let imageURL = URL(string: decodeEntities(String(html[imageRange]))),
+                  isAllowedLink(url), isAllowedLink(imageURL) else { return }
+            banners.append(["url": url.absoluteString, "imageUrl": imageURL.absoluteString])
+            if banners.count == 10 { stop.pointee = true }
+        }
+        return ["items": items, "banners": banners, "moreUrl": "https://www.ffxiv.com.tw/web/news/news_list.aspx"]
     }
 
     private static func capture(_ expression: NSRegularExpression, in value: String, group: Int) -> String? {

@@ -278,9 +278,9 @@ extension LoginPageManager: WKScriptMessageHandler {
                 if self.loginPageSession == session { self.announcementsTask = nil }
             }
             do {
-                let items = try await AnnouncementService.fetch()
+                let news = try await AnnouncementService.fetch()
                 guard !Task.isCancelled, self.loginPageSession == session else { return }
-                self.executeJavaScript("window.loginForm.receiveAnnouncements(items);", arguments: ["items": items])
+                self.executeJavaScript("window.loginForm.receiveAnnouncements(news);", arguments: ["news": news])
             } catch {
                 guard !Task.isCancelled, self.loginPageSession == session else { return }
                 Log.warning("[LoginPageManager] 無法載入官方公告")

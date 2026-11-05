@@ -13,6 +13,34 @@ body {
   background: transparent; /* 改為透明 */
 }
 
+:root {
+  --news-text: #eee9e0;
+  --news-muted: #b5afa5;
+  --news-accent: #dfbf85;
+  --news-surface: #323235;
+  --news-selected: #46413a;
+  --news-hover: #303032;
+  --news-border: #464448;
+  --news-badge-bg: #3b3325;
+  --news-badge-border: #716044;
+  --news-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --news-text: #393630;
+    --news-muted: #6b6357;
+    --news-accent: #785924;
+    --news-surface: #ebe7df;
+    --news-selected: #fffdf9;
+    --news-hover: #eeebe4;
+    --news-border: #dfd9ce;
+    --news-badge-bg: #f3ead7;
+    --news-badge-border: #c6ad7c;
+    --news-scheme: light;
+  }
+}
+
 /* ===== 主容器：左右分欄 ===== */
 .container {
   display: flex;
@@ -24,6 +52,16 @@ body {
   box-sizing: border-box;
 }
 
+/* 左右卡片共用背景，隨系統外觀一致切換。 */
+.news-section,
+.login-section {
+  background: linear-gradient(135deg, rgba(44, 44, 44, 0.05) 0%, rgba(26, 26, 26, 0.05) 100%);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  border-radius: 12px; /* 圓角 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2); /* 陰影效果 */
+}
+
 /* ===== 左側：新聞區域 (65%) ===== */
 .news-section {
   flex: 1.857; /* 65% / 35% = 1.857 */
@@ -31,86 +69,209 @@ body {
   min-height: 620px; /* 固定高度 620px，為新聞內容保留空間 */
   position: relative;
   padding: 0;
-  background: #ffffff;
-  border-radius: 12px; /* 圓角 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2); /* 陰影效果 */
   overflow: hidden; /* 確保公告區域保有圓角 */
 }
 
 .announcements {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   height: 620px;
-  padding: 28px;
-  overflow-y: auto;
+  padding: 20px;
+  overflow: hidden;
+  color: var(--news-text);
+  font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  color-scheme: var(--news-scheme);
 }
 
-.announcements-heading {
-  color: #222222;
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-
-.announcements-list {
-  display: grid;
-  gap: 8px;
-}
-
-.announcement-item {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #e2e2e2;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #222222;
+.announcements button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
-  text-align: left;
 }
 
-.announcement-item:hover,
-.announcement-item:focus-visible {
-  border-color: #007aff;
-  background: #f5f9ff;
-  outline: none;
-}
-
-.announcement-meta {
-  display: block;
-  color: #777777;
-  font-size: 12px;
-  margin-bottom: 3px;
-}
-
-.announcement-title {
-  display: block;
-  font-size: 14px;
+.announcements button:focus-visible {
+  outline: 2px solid var(--news-accent);
+  outline-offset: -2px;
 }
 
 .announcements-status {
-  color: #666666;
-  padding-top: 24px;
+  margin: 0;
+  padding: 32px 16px;
+  color: var(--news-muted);
+  font-size: 13px;
   text-align: center;
 }
 
-.announcements-retry {
+.announcements .announcements-retry {
   display: block;
   margin: 12px auto;
-  padding: 6px 12px;
-  border: 1px solid #999999;
+  padding: 8px 20px;
+  border: 1px solid var(--news-badge-border);
   border-radius: 6px;
-  background: #ffffff;
-  cursor: pointer;
+  color: var(--news-accent);
 }
+
+.announcement-banner {
+  position: relative;
+  flex: none;
+  aspect-ratio: 3 / 1;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--news-surface);
+}
+
+.announcement-banner-link,
+.announcement-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.announcement-banner-link { position: relative; }
+.announcement-banner img { position: absolute; inset: 0; object-fit: cover; }
+
+.announcement-banner :is(.announcement-previous, .announcement-next) {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  width: 20px;
+  height: 100%;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.45);
+  font-size: 22px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.announcement-banner:is(:hover, :focus-within) :is(.announcement-previous, .announcement-next) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.announcement-previous { left: 0; }
+.announcement-next { right: 0; }
+
+.announcement-dots {
+  position: absolute;
+  right: 28px;
+  bottom: 8px;
+  display: flex;
+  padding: 2px 4px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.announcement-dots button { width: 16px; height: 16px; }
+.announcement-dots button::after {
+  content: "";
+  display: block;
+  width: 5px;
+  height: 5px;
+  margin: auto;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+.announcement-dots button.active::after { background: #ffffff; }
+
+.announcement-tabs {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--news-surface);
+}
+
+.announcement-tabs button {
+  flex: 1;
+  padding: 6px 0;
+  border-radius: 5px;
+  color: var(--news-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.announcement-tabs button.active {
+  color: var(--news-accent);
+  background: var(--news-selected);
+  box-shadow: 0 1px 3px rgba(49, 40, 25, 0.1);
+  font-weight: 700;
+}
+
+.announcement-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--news-badge-border) transparent;
+}
+
+.announcements .announcement-item {
+  display: grid;
+  grid-template-columns: 74px 28px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 30px;
+  border-bottom: 1px solid var(--news-border);
+  color: var(--news-text);
+  font-size: 12px;
+  text-align: left;
+}
+
+.announcements .announcement-item:last-child { border-bottom: 0; }
+.announcement-date { color: var(--news-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.announcement-category { color: var(--news-muted); font-size: 10px; }
+.announcement-title {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-align: left;
+}
+.announcement-title-text {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.announcement-pinned {
+  flex: none;
+  margin-right: 6px;
+  padding: 1px 4px;
+  border: 1px solid var(--news-badge-border);
+  border-radius: 3px;
+  color: var(--news-accent);
+  background: var(--news-badge-bg);
+  font-size: 10px;
+  line-height: 15px;
+}
+.announcements .announcement-item:hover,
+.announcements .announcement-more:hover { color: var(--news-accent); background: var(--news-hover); }
+
+.announcement-footer {
+  flex: none;
+  padding-top: 10px;
+  border-top: 1px solid var(--news-border);
+  text-align: right;
+}
+.announcements .announcement-more { padding: 2px 0; color: var(--news-accent); font-size: 12px; }
 
 /* ===== 右側:登入區域 (35%) ===== */
 .login-section {
   flex: 1;
   min-width: 350px;
   max-width: 450px;
-  background: linear-gradient(135deg, rgba(44, 44, 44, 0.05) 0%, rgba(26, 26, 26, 0.05) 100%); /* 降低到 5% 透明度 */
-  border-radius: 12px; /* 圓角 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2); /* 陰影效果 */
-  backdrop-filter: blur(1px); /* 降低背景模糊效果到 1px */
-  -webkit-backdrop-filter: blur(1px); /* Safari 支援 */
   display: flex;
   align-items: flex-start; /* 靠上對齊 */
   justify-content: center;
@@ -118,18 +279,12 @@ body {
   box-sizing: border-box;
 }
 
-/* 支援深色模式 */
+/* 淺色模式 */
 @media (prefers-color-scheme: light) {
-  .news-section {
-    background: rgba(255, 255, 255, 0.4); /* 半透明白色背景 */
-    backdrop-filter: blur(10px) saturate(150%); /* 毛玻璃效果 */
-    -webkit-backdrop-filter: blur(10px) saturate(150%); /* Safari 支援 */
-    border: 1px solid rgba(255, 255, 255, 0.5); /* 半透明邊框 */
-  }
-  
+  .news-section,
   .login-section {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(240, 240, 240, 0.2) 100%); /* 降低到 15-20% 不透明度 */
-    backdrop-filter: blur(10px) saturate(180%); /* 降低模糊到 5px */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(240, 240, 240, 0.2) 100%);
+    backdrop-filter: blur(10px) saturate(180%);
     -webkit-backdrop-filter: blur(10px) saturate(180%); /* Safari 支援 */
     border: 1px solid rgba(255, 255, 255, 0.3); /* 添加邊框增強毛玻璃感 */
   }

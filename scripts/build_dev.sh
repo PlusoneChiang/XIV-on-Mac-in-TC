@@ -1,6 +1,6 @@
 #!/bin/bash
 # 用法：./scripts/build_dev.sh
-# 保留增量建置快取，以本機 ad-hoc 簽章產生測試 app，不製作 DMG。
+# 保留增量建置快取，沿用專案的 Developer ID 簽章，不製作 DMG。
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,9 +14,6 @@ xcodebuild \
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$BUILD_DIR" \
     CONFIGURATION_BUILD_DIR="${PROJECT_DIR}/build" \
-    CODE_SIGN_IDENTITY=- \
-    CODE_SIGN_STYLE=Manual \
-    DEVELOPMENT_TEAM= \
     build
 
 if [ ! -d "$APP_PATH" ]; then
