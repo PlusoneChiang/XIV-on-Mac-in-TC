@@ -91,13 +91,13 @@
 		CC9B3FA62EDF5E7C0029BF87 /* FFXIV-TcDefault.cfg in Resources */ = {isa = PBXBuildFile; fileRef = CC9B3FA52EDF5E7C0029BF87 /* FFXIV-TcDefault.cfg */; };
 		CCADF0FB2F1E27CB0030CD11 /* pony.png in Resources */ = {isa = PBXBuildFile; fileRef = CCADF0FA2F1E27CB0030CD11 /* pony.png */; };
 		CCE6C2082F232FF3007CC7D0 /* love.png in Resources */ = {isa = PBXBuildFile; fileRef = CCE6C2072F232FF3007CC7D0 /* love.png */; };
-		CCFF04B52EEB42A00009A0EA /* AnnouncementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFF04B42EEB42A00009A0EA /* AnnouncementService.swift */; };
 		CCFF04AA2EEAB05D0009A0EA /* LoginPageSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFF04A92EEAB05D0009A0EA /* LoginPageSchemeHandler.swift */; };
 		CCFF04AB2EEAB05D0009A0EA /* LoginPageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFF04A82EEAB05D0009A0EA /* LoginPageManager.swift */; };
 		CCFF04AF2EEAB6890009A0EA /* login_page.html in Resources */ = {isa = PBXBuildFile; fileRef = CCFF04AD2EEAB6890009A0EA /* login_page.html */; };
 		CCFF04B02EEAB6890009A0EA /* login_page.js in Resources */ = {isa = PBXBuildFile; fileRef = CCFF04AE2EEAB6890009A0EA /* login_page.js */; };
 		CCFF04B12EEAB6890009A0EA /* login_page.css in Resources */ = {isa = PBXBuildFile; fileRef = CCFF04AC2EEAB6890009A0EA /* login_page.css */; };
 		CCFF04B32EEB41F90009A0EA /* SarasaMonoTC-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CCFF04B22EEB41F90009A0EA /* SarasaMonoTC-Regular.ttf */; };
+		CCFF04B52EEB42A00009A0EA /* AnnouncementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFF04B42EEB42A00009A0EA /* AnnouncementService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -211,13 +211,13 @@
 		CC9B3FA52EDF5E7C0029BF87 /* FFXIV-TcDefault.cfg */ = {isa = PBXFileReference; lastKnownFileType = text; path = "FFXIV-TcDefault.cfg"; sourceTree = "<group>"; };
 		CCADF0FA2F1E27CB0030CD11 /* pony.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pony.png; sourceTree = "<group>"; };
 		CCE6C2072F232FF3007CC7D0 /* love.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = love.png; sourceTree = "<group>"; };
-		CCFF04B42EEB42A00009A0EA /* AnnouncementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementService.swift; sourceTree = "<group>"; };
 		CCFF04A82EEAB05D0009A0EA /* LoginPageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginPageManager.swift; sourceTree = "<group>"; };
 		CCFF04A92EEAB05D0009A0EA /* LoginPageSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginPageSchemeHandler.swift; sourceTree = "<group>"; };
 		CCFF04AC2EEAB6890009A0EA /* login_page.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = login_page.css; sourceTree = "<group>"; };
 		CCFF04AD2EEAB6890009A0EA /* login_page.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = login_page.html; sourceTree = "<group>"; };
 		CCFF04AE2EEAB6890009A0EA /* login_page.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = login_page.js; sourceTree = "<group>"; };
 		CCFF04B22EEB41F90009A0EA /* SarasaMonoTC-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SarasaMonoTC-Regular.ttf"; sourceTree = "<group>"; };
+		CCFF04B42EEB42A00009A0EA /* AnnouncementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementService.swift; sourceTree = "<group>"; };
 		F46BBF18291C0494000C4672 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Main.strings; sourceTree = "<group>"; };
 		FC2A0719289A5E4300C25C34 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Main.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -907,7 +907,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 20;
+				CURRENT_PROJECT_VERSION = 21;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = A7Z56NZJ7Q;
@@ -927,8 +927,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/XIV\\ on\\ Mac/XIVLauncher.NativeAOT",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 1.3.0;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MARKETING_VERSION = 1.4.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = "plusone.XIV-on-Mac-in-TC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -955,7 +955,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 20;
+				CURRENT_PROJECT_VERSION = 21;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = A7Z56NZJ7Q;
@@ -975,8 +975,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/XIV\\ on\\ Mac/XIVLauncher.NativeAOT",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 1.3.0;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MARKETING_VERSION = 1.4.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = "plusone.XIV-on-Mac-in-TC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
