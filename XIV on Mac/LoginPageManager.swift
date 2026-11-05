@@ -24,12 +24,16 @@ enum LoginPageMessage: String {
 
 /// 登入頁面管理器
 class LoginPageManager: NSObject {
+    static let loginPageURL = URL(string: "https://user.ffxiv.com.tw/")!
     // MARK: - Properties
     
     weak var webView: WKWebView?
     weak var delegate: LoginPageManagerDelegate?
     
     private var currentAccount: String?
+    private var loginNavigation: WKNavigation?
+    private var loginPageSession: String?
+    private var bridgeEnabled = false
     
     // MARK: - Initialization
     
@@ -41,6 +45,37 @@ class LoginPageManager: NSObject {
     
     deinit {
         removeMessageHandlers()
+    }
+
+    func loadLoginPage(_ html: String) {
+        didFailNavigation()
+        guard html.contains("<head>") else {
+            Log.error("[LoginPageManager] 本機登入頁缺少 head，停止載入")
+            return
+        }
+        let session = UUID().uuidString
+        loginPageSession = session
+        // 文件識別只注入本機 HTML，避免延遲回傳落入導航後的其他頁面。
+        let page = html.replacingOccurrences(of: "<head>", with:
+            "<head><script>Object.defineProperty(window, '__xivLoginSession', { value: '\(session)' });</script>")
+        loginNavigation = webView?.loadHTMLString(page, baseURL: Self.loginPageURL)
+    }
+
+    func invalidateBridge() {
+        bridgeEnabled = false
+        currentAccount = nil
+    }
+
+    func didCommit(_ navigation: WKNavigation?) {
+        bridgeEnabled = navigation != nil && navigation === loginNavigation
+            && webView?.url == Self.loginPageURL
+        loginNavigation = nil
+    }
+
+    func didFailNavigation() {
+        invalidateBridge()
+        loginNavigation = nil
+        loginPageSession = nil
     }
     
     // MARK: - Message Handler Setup
@@ -129,7 +164,12 @@ class LoginPageManager: NSObject {
     // MARK: - Helper
     
     private func executeJavaScript(_ script: String, arguments: [String: Any] = [:]) {
-        webView?.callAsyncJavaScript(script, arguments: arguments, in: nil, in: .page) { result in
+        guard bridgeEnabled, webView?.url == Self.loginPageURL,
+              let session = loginPageSession else { return }
+        var parameters = arguments
+        parameters["loginPageSession"] = session
+        let guardedScript = "if (window.__xivLoginSession !== loginPageSession) return; \(script)"
+        webView?.callAsyncJavaScript(guardedScript, arguments: parameters, in: nil, in: .page) { result in
             if case .failure(let error) = result {
                 Log.error("[LoginPageManager] JavaScript error: \(error.localizedDescription)")
             }
@@ -141,6 +181,16 @@ class LoginPageManager: NSObject {
 
 extension LoginPageManager: WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        let frame = message.frameInfo
+        let origin = frame.securityOrigin
+        guard bridgeEnabled, let webView = webView,
+              message.webView === webView, frame.webView === webView,
+              userContentController === webView.configuration.userContentController,
+              frame.isMainFrame, frame.request.url == Self.loginPageURL,
+              webView.url == Self.loginPageURL,
+              origin.protocol == "https", origin.host == "user.ffxiv.com.tw", origin.port == 0 else {
+            return
+        }
         guard let messageType = LoginPageMessage(rawValue: message.name) else {
             Log.warning("[LoginPageManager] Unknown message: \(message.name)")
             return
@@ -148,24 +198,26 @@ extension LoginPageManager: WKScriptMessageHandler {
         
         switch messageType {
         case .requestAccounts:
+            guard message.body is NSNull else { return }
             handleRequestAccounts()
             
         case .requestPassword:
-            if let account = message.body as? String {
+            if let account = message.body as? String, !account.isEmpty {
                 handleRequestPassword(account: account)
             }
             
         case .checkOTPKey:
-            if let account = message.body as? String {
+            if let account = message.body as? String, !account.isEmpty {
                 handleCheckOTPKey(account: account)
             }
             
         case .saveOTPKey:
-            if let key = message.body as? String {
+            if let key = message.body as? String, !key.isEmpty {
                 handleSaveOTPKey(key: key)
             }
             
         case .requestOTP:
+            guard message.body is NSNull else { return }
             handleRequestOTP()
             
         case .executeLogin:
@@ -179,8 +231,8 @@ extension LoginPageManager: WKScriptMessageHandler {
             }
             
         case .updateAutoOtp:
-            if let enabled = message.body as? Bool {
-                handleUpdateAutoOtp(enabled: enabled)
+            if let enabled = message.body as? NSNumber, CFGetTypeID(enabled) == CFBooleanGetTypeID() {
+                handleUpdateAutoOtp(enabled: enabled.boolValue)
             }
         }
     }
@@ -220,7 +272,9 @@ extension LoginPageManager: WKScriptMessageHandler {
     private func handleExecuteLogin(credentials: [String: String]) {
         guard let username = credentials["username"],
               let password = credentials["password"],
-              let recaptchaToken = credentials["recaptchaToken"] else {
+              let recaptchaToken = credentials["recaptchaToken"],
+              !username.isEmpty, !password.isEmpty, !recaptchaToken.isEmpty,
+              Set(credentials.keys).isSubset(of: ["username", "password", "otp", "recaptchaToken"]) else {
             Log.error("[LoginPageManager] Invalid credentials format")
             return
         }

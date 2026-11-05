@@ -382,9 +382,8 @@ class LaunchController: NSViewController, WKNavigationDelegate {
             )
 
             // 使用 HTTPS baseURL 載入，讓 reCAPTCHA 信任此 Origin
-            let baseURL = URL(string: "https://user.ffxiv.com.tw/")!
-            loginPageWebView.loadHTMLString(html, baseURL: baseURL)
-            Log.information("[LaunchController] Login page loaded with HTTPS origin: \(baseURL.absoluteString)")
+            loginPageManager?.loadLoginPage(html)
+            Log.information("[LaunchController] Login page loaded with HTTPS origin: \(LoginPageManager.loginPageURL.absoluteString)")
 
         } catch {
             Log.error("[LaunchController] Failed to load login page resources: \(error)")
@@ -870,17 +869,25 @@ extension LaunchController {
 
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        loginPageManager?.didFailNavigation()
         Log.error("[LaunchController] WebView navigation failed: \(error.localizedDescription)")
     }
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        loginPageManager?.didFailNavigation()
         Log.error("[LaunchController] WebView provisional navigation failed: \(error.localizedDescription)")
     }
     
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        loginPageManager?.invalidateBridge()
     }
     
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        loginPageManager?.didCommit(navigation)
+    }
+
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        loginPageManager?.didFailNavigation()
     }
 }
 
