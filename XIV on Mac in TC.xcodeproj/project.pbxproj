@@ -91,6 +91,7 @@
 		CC9B3FA62EDF5E7C0029BF87 /* FFXIV-TcDefault.cfg in Resources */ = {isa = PBXBuildFile; fileRef = CC9B3FA52EDF5E7C0029BF87 /* FFXIV-TcDefault.cfg */; };
 		CCADF0FB2F1E27CB0030CD11 /* pony.png in Resources */ = {isa = PBXBuildFile; fileRef = CCADF0FA2F1E27CB0030CD11 /* pony.png */; };
 		CCE6C2082F232FF3007CC7D0 /* love.png in Resources */ = {isa = PBXBuildFile; fileRef = CCE6C2072F232FF3007CC7D0 /* love.png */; };
+		CCFF04B52EEB42A00009A0EA /* AnnouncementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFF04B42EEB42A00009A0EA /* AnnouncementService.swift */; };
 		CCFF04AA2EEAB05D0009A0EA /* LoginPageSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFF04A92EEAB05D0009A0EA /* LoginPageSchemeHandler.swift */; };
 		CCFF04AB2EEAB05D0009A0EA /* LoginPageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFF04A82EEAB05D0009A0EA /* LoginPageManager.swift */; };
 		CCFF04AF2EEAB6890009A0EA /* login_page.html in Resources */ = {isa = PBXBuildFile; fileRef = CCFF04AD2EEAB6890009A0EA /* login_page.html */; };
@@ -210,6 +211,7 @@
 		CC9B3FA52EDF5E7C0029BF87 /* FFXIV-TcDefault.cfg */ = {isa = PBXFileReference; lastKnownFileType = text; path = "FFXIV-TcDefault.cfg"; sourceTree = "<group>"; };
 		CCADF0FA2F1E27CB0030CD11 /* pony.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pony.png; sourceTree = "<group>"; };
 		CCE6C2072F232FF3007CC7D0 /* love.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = love.png; sourceTree = "<group>"; };
+		CCFF04B42EEB42A00009A0EA /* AnnouncementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnouncementService.swift; sourceTree = "<group>"; };
 		CCFF04A82EEAB05D0009A0EA /* LoginPageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginPageManager.swift; sourceTree = "<group>"; };
 		CCFF04A92EEAB05D0009A0EA /* LoginPageSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginPageSchemeHandler.swift; sourceTree = "<group>"; };
 		CCFF04AC2EEAB6890009A0EA /* login_page.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = login_page.css; sourceTree = "<group>"; };
@@ -374,6 +376,7 @@
 		50511EC32770E085003A1E9F /* XIV on Mac */ = {
 			isa = PBXGroup;
 			children = (
+				CCFF04B42EEB42A00009A0EA /* AnnouncementService.swift */,
 				CCFF04A82EEAB05D0009A0EA /* LoginPageManager.swift */,
 				CCFF04A92EEAB05D0009A0EA /* LoginPageSchemeHandler.swift */,
 				50B2A2B327ABEF6800EFA0A2 /* XIV-on-Mac-Info.plist */,
@@ -725,6 +728,7 @@
 				502A18D827AA8C0D00144AB9 /* LoginCredentials.swift in Sources */,
 				07B3506F29A457770010C1F5 /* BenchmarkView.swift in Sources */,
 				509FE19C27E39DCB008D56D6 /* FFXIVApp.swift in Sources */,
+				CCFF04B52EEB42A00009A0EA /* AnnouncementService.swift in Sources */,
 				CCFF04AA2EEAB05D0009A0EA /* LoginPageSchemeHandler.swift in Sources */,
 				CCFF04AB2EEAB05D0009A0EA /* LoginPageManager.swift in Sources */,
 				079A343027F90F350043BEEA /* FirstAidModel.swift in Sources */,

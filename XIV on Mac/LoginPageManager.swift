@@ -12,6 +12,8 @@ import Cocoa
 
 /// 登入頁面訊息類型
 enum LoginPageMessage: String {
+    case requestAnnouncements // JS → Swift: 請求固定來源的公告列表
+    case openAnnouncement     // JS → Swift: 在系統瀏覽器開啟官方公告
     case requestAccounts        // JS → Swift: 請求已儲存帳號列表
     case requestPassword        // JS → Swift: 請求指定帳號的密碼
     case checkOTPKey           // JS → Swift: 檢查帳號是否有已儲存的 OTP 金鑰
@@ -34,6 +36,7 @@ class LoginPageManager: NSObject {
     private var loginNavigation: WKNavigation?
     private var loginPageSession: String?
     private var bridgeEnabled = false
+    private var announcementsTask: Task<Void, Never>?
     
     // MARK: - Initialization
     
@@ -64,6 +67,8 @@ class LoginPageManager: NSObject {
     func invalidateBridge() {
         bridgeEnabled = false
         currentAccount = nil
+        announcementsTask?.cancel()
+        announcementsTask = nil
     }
 
     func didCommit(_ navigation: WKNavigation?) {
@@ -88,6 +93,8 @@ class LoginPageManager: NSObject {
         // 註冊所有訊息處理器
         for message in [
             LoginPageMessage.requestAccounts,
+            .requestAnnouncements,
+            .openAnnouncement,
             .requestPassword,
             .checkOTPKey,
             .saveOTPKey,
@@ -107,6 +114,8 @@ class LoginPageManager: NSObject {
         
         for message in [
             LoginPageMessage.requestAccounts,
+            .requestAnnouncements,
+            .openAnnouncement,
             .requestPassword,
             .checkOTPKey,
             .saveOTPKey,
@@ -197,6 +206,16 @@ extension LoginPageManager: WKScriptMessageHandler {
         }
         
         switch messageType {
+        case .requestAnnouncements:
+            guard message.body is NSNull else { return }
+            handleRequestAnnouncements()
+
+        case .openAnnouncement:
+            if let value = message.body as? String, let url = URL(string: value),
+               AnnouncementService.isAllowedLink(url) {
+                NSWorkspace.shared.open(url)
+            }
+
         case .requestAccounts:
             guard message.body is NSNull else { return }
             handleRequestAccounts()
@@ -238,6 +257,25 @@ extension LoginPageManager: WKScriptMessageHandler {
     }
     
     // MARK: - Message Handlers
+
+    private func handleRequestAnnouncements() {
+        guard announcementsTask == nil, let session = loginPageSession else { return }
+        announcementsTask = Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            defer {
+                if self.loginPageSession == session { self.announcementsTask = nil }
+            }
+            do {
+                let items = try await AnnouncementService.fetch()
+                guard !Task.isCancelled, self.loginPageSession == session else { return }
+                self.executeJavaScript("window.loginForm.receiveAnnouncements(items);", arguments: ["items": items])
+            } catch {
+                guard !Task.isCancelled, self.loginPageSession == session else { return }
+                Log.warning("[LoginPageManager] 無法載入官方公告")
+                self.executeJavaScript("window.loginForm.onAnnouncementsError();")
+            }
+        }
+    }
     
     private func handleRequestAccounts() {
         delegate?.loginPageManagerRequestAccounts(self)

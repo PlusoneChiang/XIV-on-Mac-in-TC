@@ -23,6 +23,7 @@ class LoginForm {
     this.loginButton = document.getElementById('loginButton');
     this.accountDropdownBtn = document.getElementById('accountDropdownBtn');
     this.accountDropdown = document.getElementById('accountDropdown');
+    this.announcements = document.getElementById('announcements');
 
     // OTP 倒數計時器
     this.otpCountdownTimer = null;
@@ -77,6 +78,7 @@ class LoginForm {
 
     // 請求已儲存的帳號列表
     this.requestAccounts();
+    this.requestAnnouncements();
 
     console.log('[LoginPage] Initialized successfully');
   }
@@ -90,6 +92,85 @@ class LoginForm {
     console.log('[LoginPage] Requesting saved accounts...');
     if (window.webkit && window.webkit.messageHandlers.requestAccounts) {
       window.webkit.messageHandlers.requestAccounts.postMessage(null);
+    }
+  }
+
+  requestAnnouncements() {
+    if (window.webkit && window.webkit.messageHandlers.requestAnnouncements) {
+      if (this.announcements) {
+        const status = document.createElement('p');
+        status.className = 'announcements-status';
+        status.textContent = '載入官方公告中…';
+        this.announcements.replaceChildren(status);
+      }
+      window.webkit.messageHandlers.requestAnnouncements.postMessage(null);
+    }
+  }
+
+  receiveAnnouncements(items) {
+    if (!this.announcements || !Array.isArray(items)) {
+      return this.onAnnouncementsError();
+    }
+
+    const fragment = document.createDocumentFragment();
+    const heading = document.createElement('h2');
+    heading.className = 'announcements-heading';
+    heading.textContent = '官方公告';
+    fragment.appendChild(heading);
+
+    const list = document.createElement('div');
+    list.className = 'announcements-list';
+    for (const item of items) {
+      if (!item || typeof item.title !== 'string' || typeof item.url !== 'string' || !this.isAnnouncementURL(item.url)) {
+        continue;
+      }
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'announcement-item';
+      button.addEventListener('click', () => {
+        window.webkit?.messageHandlers.openAnnouncement?.postMessage(item.url);
+      });
+
+      const meta = document.createElement('span');
+      meta.className = 'announcement-meta';
+      meta.textContent = [item.date, item.category].filter(value => typeof value === 'string' && value.length > 0).join('　');
+      const title = document.createElement('span');
+      title.className = 'announcement-title';
+      title.textContent = item.title;
+      button.append(meta, title);
+      list.appendChild(button);
+    }
+
+    if (list.childElementCount === 0) {
+      return this.onAnnouncementsError();
+    }
+    fragment.appendChild(list);
+    this.announcements.replaceChildren(fragment);
+  }
+
+  onAnnouncementsError() {
+    if (!this.announcements) return;
+    const status = document.createElement('p');
+    status.className = 'announcements-status';
+    status.textContent = '目前無法載入官方公告。';
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'announcements-retry';
+    retry.textContent = '重新整理';
+    retry.addEventListener('click', () => this.requestAnnouncements());
+    this.announcements.replaceChildren(status, retry);
+  }
+
+  isAnnouncementURL(value) {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:'
+        && url.port === ''
+        && url.username === ''
+        && url.password === ''
+        && (url.hostname === 'ffxiv.com.tw' || url.hostname.endsWith('.ffxiv.com.tw'));
+    } catch {
+      return false;
     }
   }
 

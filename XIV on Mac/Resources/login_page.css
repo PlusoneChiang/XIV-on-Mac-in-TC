@@ -34,14 +34,71 @@ body {
   background: #ffffff;
   border-radius: 12px; /* 圓角 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2); /* 陰影效果 */
-  overflow: hidden; /* 確保 iframe 也有圓角 */
+  overflow: hidden; /* 確保公告區域保有圓角 */
 }
 
-.news-section iframe {
+.announcements {
+  height: 620px;
+  padding: 28px;
+  overflow-y: auto;
+}
+
+.announcements-heading {
+  color: #222222;
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.announcements-list {
+  display: grid;
+  gap: 8px;
+}
+
+.announcement-item {
   width: 100%;
-  height: 620px; /* 固定高度 620px */
-  border: none;
+  padding: 12px 14px;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #222222;
+  cursor: pointer;
+  text-align: left;
+}
+
+.announcement-item:hover,
+.announcement-item:focus-visible {
+  border-color: #007aff;
+  background: #f5f9ff;
+  outline: none;
+}
+
+.announcement-meta {
   display: block;
+  color: #777777;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+
+.announcement-title {
+  display: block;
+  font-size: 14px;
+}
+
+.announcements-status {
+  color: #666666;
+  padding-top: 24px;
+  text-align: center;
+}
+
+.announcements-retry {
+  display: block;
+  margin: 12px auto;
+  padding: 6px 12px;
+  border: 1px solid #999999;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
 }
 
 /* ===== 右側:登入區域 (35%) ===== */
